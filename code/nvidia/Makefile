@@ -1,12 +1,14 @@
 
 NVCC=nvcc
-ARCH=sm_52
+ARCH=sm_30
 
-CUDA_PATH?=/usr/local/cuda
+CUDA_PATH?=/usr/local/cuda-7.5
 CUDA_LIB64=$(CUDA_PATH)/lib64
-CUDNN_PATH?=/usr/local/cudnn
-NCCL_PATH?=/usr/local/nccl
-MPI_PATH?=/usr/local/openmpi
+#CUDNN_PATH?=/usr/local/cudnn
+CUDNN_PATH/=$(CUDA_PATH)/include
+#NCCL_PATH?=/usr/local/nccl
+NCCL_PATH?=CUDDN_PATH
+MPI_PATH?=/home/caweinshenker/mpi
 BIN_DIR?=bin
 MKDIR=mkdir -p
 #BLAS
@@ -15,9 +17,9 @@ BLAS_PATH?=$(CUDA_LIB64)
 #CONV
 CONV_LIBRARY?=cudnn
 CONV_PATH?=$
-.PHONY=all gemm conv rnn all_reduce nccl_single nccl_mpi clean
+.PHONY=all gemm conv rnn rnn_16  all_reduce nccl_single nccl_mpi clean
 
-all: gemm conv rnn all_reduce
+all: gemm conv rnn rnn_16  all_reduce
 
 gemm:
 	$(MKDIR) $(BIN_DIR) 
@@ -30,6 +32,15 @@ conv:
 rnn:
 	$(MKDIR) $(BIN_DIR)
 	$(CUDA_PATH)/bin/$(NVCC) rnn_bench.cu -o $(BIN_DIR)/rnn_bench -I $(CUDA_PATH)/include -I $(CUDNN_PATH)/include/ -L $(CUDNN_PATH)/lib64/ -L $(CUDA_LIB64) -lcurand -lcudnn -arch=$(ARCH) -std=c++11
+
+rnn_16:
+	$(MKDIR) $(BIN_DIR)
+	$(CUDA_PATH)/bin/$(NVCC) rnn_bench_16.cu -o $(BIN_DIR)/rnn_bench_16  -I $(CUDA_PATH)/include -I $(CUDNN_PATH)/include/ -L $(CUDNN_PATH)/lib64/ -L $(CUDA_LIB64) -lcurand -lcudnn -arch=$(ARCH) -std=c++11
+
+tensor:
+	$(MKDIR) $(BIN_DIR)
+	$(CUDA_PATH)/bin/$(NVCC) tensor_test.cu -o tensor_test -lcublas -I $(CUDA_PATH)/include -I $(CUDNN_PATH)/include/ -L $(CUDNN_PATH)/lib64/ -L $(CUDA_LIB64) -lcurand -lcudnn -arch=$(ARCH) -std=c++11
+
 
 all_reduce: nccl_single nccl_mpi
 

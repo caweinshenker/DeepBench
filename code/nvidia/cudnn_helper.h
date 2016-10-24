@@ -4,7 +4,9 @@
 #include <sstream>
 #include <vector>
 
+
 #include <cudnn.h>
+#include <cuda_fp16.h>
 
 void throw_cudnn_err(cudnnStatus_t status, int line, const char* filename) {
     if (status != CUDNN_STATUS_SUCCESS) {
@@ -53,7 +55,9 @@ public:
         cudnnDataType_t type;
         if (std::is_same<T, float>::value)
             type = CUDNN_DATA_FLOAT;
-        else
+         else if (std::is_same<T, half>::value)
+	    type = CUDNN_DATA_HALF;
+	else
             throw std::runtime_error("Unknown type");
 
         cudnnTensorDescriptor_t * desc = new cudnnTensorDescriptor_t;
@@ -94,7 +98,9 @@ class TensorDescriptorNdArray {
         cudnnDataType_t type;
         if (std::is_same<T, float>::value)
             type = CUDNN_DATA_FLOAT;
-        else
+        else if (std::is_same<T, half>::value)
+	    type = CUDNN_DATA_HALF;
+	else
             throw std::runtime_error("Unknown type");
 
         cudnnTensorDescriptor_t * desc_array = new cudnnTensorDescriptor_t[num];
@@ -131,7 +137,9 @@ public:
         cudnnDataType_t type;
         if (std::is_same<T, float>::value)
             type = CUDNN_DATA_FLOAT;
-        else
+        else if (std::is_same<T, half>::value)
+	    type = CUDNN_DATA_HALF;
+	else
             throw std::runtime_error("Unknown type");
 
         cudnnFilterDescriptor_t * desc = new cudnnFilterDescriptor_t;
@@ -163,7 +171,9 @@ public:
         cudnnDataType_t type;
         if (std::is_same<T, float>::value)
             type = CUDNN_DATA_FLOAT;
-        else
+        else if (std::is_same<T, half>::value)
+	    type = CUDNN_DATA_HALF;
+	else
             throw std::runtime_error("Unknown type");
 
         cudnnTensorDescriptor_t * desc = new cudnnTensorDescriptor_t;
@@ -200,7 +210,9 @@ public:
         cudnnDataType_t type;
         if (std::is_same<T, float>::value)
             type = CUDNN_DATA_FLOAT;
-        else
+        else if (std::is_same<T, half>::value)
+	    type = CUDNN_DATA_HALF;
+	else
             throw std::runtime_error("Unknown type");
 
         cudnnFilterDescriptor_t * desc = new cudnnFilterDescriptor_t;
@@ -264,6 +276,8 @@ public:
         cudnnDataType_t type;
         if (std::is_same<T, float>::value)
             type = CUDNN_DATA_FLOAT;
+	else if (std::is_same<T, half>::value)
+	    type = CUDNN_DATA_HALF;
         else
             throw std::runtime_error("Unknown type");
 
