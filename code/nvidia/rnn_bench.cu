@@ -10,7 +10,7 @@
 #include <thrust/device_ptr.h>
 #include <thrust/fill.h>
 
-#include "tensor.h"
+#include "tensor_16.h"
 #include "cudnn_helper.h"
 
 cudnnHandle_t cudnn_handle;
@@ -257,7 +257,7 @@ int main(int argc, char **argv) {
     curandSetPseudoRandomGeneratorSeed(curand_gen, 123ULL);
 
     std::vector<std::tuple<int, int, int, bool>> problems  = {
-        std::make_tuple(1760, 16, 50, false),
+	std::make_tuple(1760, 16, 50, false),
         std::make_tuple(1760, 32, 50, false),
         std::make_tuple(1760, 64, 50, false),
         std::make_tuple(1760, 128, 50, false),

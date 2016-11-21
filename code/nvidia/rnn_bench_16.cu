@@ -110,7 +110,6 @@ class cudnnRNN {
                                              rnn_type);
 	
 	    cudnn_data_type_ = std::is_same<T, float>::value ? CUDNN_DATA_FLOAT : CUDNN_DATA_HALF;
-	    std::cout << "Cudnn Data type: " << cudnn_data_type_ << "\n";
             CHECK_CUDNN_ERROR( cudnnGetRNNParamsSize(cudnn_handle,
                                                      rnn_desc_.desc(),
                                                      xDescArray_.ptr()[0],
@@ -135,10 +134,7 @@ class cudnnRNN {
                                                               time_steps,
                                                               xDescArray_.ptr(),
                                                               &train_size_) );
-	    std::cout << "Bouta make trainspace\n";
-	    std::cout << "Train size: " << train_size_ << "\n";
             trainspace_ = Tensor<T>::zeros(std::vector<int>{static_cast<int>(train_size_ / sizeof(T)), 1});
-	    std::cout << "Trainspace built\n";
         }
         void forward(Tensor<T> x, Tensor<T> hx, Tensor<T> cx,
                      Tensor<T> y, Tensor<T> hy, Tensor<T> cy) {
@@ -201,9 +197,7 @@ std::tuple<int, int> time_rnn(int hidden_size,
                               int batch_size,
                               int time_steps,
                               const std::string& type) {
-    std::cout << "\nBouta make rnn\n";
     cudnnRNN<half> rnn(hidden_size, batch_size, time_steps, type);
-    std::cout << "Bouta make tensor\n";
     auto x  = Tensor<half>::rand({hidden_size, batch_size * time_steps}, curand_gen);
     auto y  = Tensor<half>::rand({hidden_size, batch_size * time_steps}, curand_gen);
     auto dx = Tensor<half>::rand({hidden_size, batch_size * time_steps}, curand_gen);
@@ -217,13 +211,11 @@ std::tuple<int, int> time_rnn(int hidden_size,
     auto dhy = Tensor<half>::rand({hidden_size, batch_size}, curand_gen);
     auto dcx = Tensor<half>::rand({hidden_size, batch_size}, curand_gen);
     auto dcy = Tensor<half>::rand({hidden_size, batch_size}, curand_gen);
-    std::cout << "Tensors built\n";
 
     int numRepeats = 100;
 
     //Warm up
     rnn.forward(x, hx, cx, y, hy, cy);
-    std::cout << "Forward pass complete\n";
 
     cudaDeviceSynchronize();
 

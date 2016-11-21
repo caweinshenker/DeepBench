@@ -5,7 +5,7 @@
 #include <memory>
 
 #include <curand.h>
-
+#include <cuda_fp16.h>
 #include <thrust/device_ptr.h>
 #include <thrust/fill.h>
 

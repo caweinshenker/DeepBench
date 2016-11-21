@@ -138,14 +138,13 @@ void Tensor<half>::print(){
     CHECK_CUDA_ERROR(cudaMalloc(&d_buff, sizeof(float) * size_));
     CHECK_CUDA_ERROR(cudaDeviceSynchronize());
    
-    half_2_float<<<std::max(1, std::min(1, size_/1024)), 1024>>>(begin(), d_buff, size_);
+    half_2_float<<<1, (1024, 1024)>>>(begin(), d_buff, size_);
     CHECK_CUDA_ERROR(cudaDeviceSynchronize());
     
     CHECK_CUDA_ERROR(cudaMemcpy(h_out, d_buff, sizeof(float) * size_, cudaMemcpyDeviceToHost));
     CHECK_CUDA_ERROR(cudaDeviceSynchronize());
 
     for (int i = 0; i < dims_[0]; i++){
-	printf("%d\n", i);
 	printf("[");
 	for (int j = 0; j < dims_[1] - 1; j++){
 		printf("%f,", h_out[i * dims_[1] + j]);

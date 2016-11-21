@@ -17,12 +17,14 @@
 #include <assert.h>
 #include <cmath>
 #include <cublas_v2.h>
+
+
+
 #define TOL 1e-3
-
-
 cudnnHandle_t cudnn_handle;
 curandGenerator_t curand_gen;
 std::vector<int> dims = {1024, 16 * 25};
+std::vector<int> dims2 = {32, 16};
 int hidden_size = 1760;
 int batch_size = 16;
 int time_steps = 50;
@@ -78,38 +80,49 @@ void half_same_test(){
 
 
 void half_tensor_rand_test(){
-	Tensor<half> tensor = Tensor<half>::rand(dims, curand_gen);
-	printf("Random half tensor test passed\n");	
+	Tensor<half> tensor = Tensor<half>::rand(dims2, curand_gen);
+	float *d_f;
+        float f_host[tensor.size()];
+
+	CHECK_CUDA_ERROR(cudaMalloc(&d_f, sizeof(float) * tensor.size()));
+	CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+	half_2_float<<<1024, 1024>>>(tensor.begin(), d_f, tensor.size()); 
+	CHECK_CUDA_ERROR(cudaDeviceSynchronize());	
+	CHECK_CUDA_ERROR(cudaMemcpy(f_host, d_f, sizeof(float) * tensor.size(), cudaMemcpyDeviceToHost));
+	CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+	tensor.print();
+	for (int i = 0; i < tensor.size(); i++){
+		if (f_host[i] == 0) printf("%d: %f\n", i, f_host[i]);
+		assert(f_host[i] != 0);
+	}
+	std::cout << "Random half tensor test passed\n";
 }
 
 
+
 void half_tensor_zeros_test(){
-	std::vector<int> dims2 = {50, 10};
-	Tensor<half> tensor = Tensor<half>::zeros(dims);
+	Tensor<half> tensor = Tensor<half>::zeros(dims2);
 	float *d_f;
         float h_host[tensor.size()];
-	CHECK_CUDA_ERROR(cudaMalloc(&d_f, sizeof(float) * tensor.size()));
-	
-	CHECK_CUDA_ERROR(cudaDeviceSynchronize());
-	half_2_float<<<50, 50>>>(tensor.begin(), d_f, tensor.size()); 
 
+
+	CHECK_CUDA_ERROR(cudaMalloc(&d_f, sizeof(float) * tensor.size()));
+	CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+	half_2_float<<<2, 100>>>(tensor.begin(), d_f, tensor.size()); 
 	CHECK_CUDA_ERROR(cudaDeviceSynchronize());	
 	CHECK_CUDA_ERROR(cudaMemcpy(h_host, d_f, sizeof(float) * tensor.size(), cudaMemcpyDeviceToHost));
 	CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+
 	tensor.print();
-	for (int i =0; i < tensor.size() / 2; i++){
-		if (std::abs(h_host[i]) >= TOL) printf("%d: %f\n", i, h_host[i]);
+	for (int i =0; i < tensor.size(); i++){
+	printf("%d: %f\n", i, h_host[i]);
+	if (std::abs(h_host[i]) >= TOL) printf("%d: %f\n", i, h_host[i]);
 		assert (std::abs(h_host[i]) < TOL);
 	}
 	std::cout << "Half tensor zeros passed\n";
 } 
 
-//Check that tensor of half types generate
-void types_test(){
-	TensorDescriptorNdArray<half> xDescArray_({batch_size, hidden_size, 1}, {hidden_size, 1, 1}, time_steps);
-	TensorDescriptorNd<half> hx_desc_({1, batch_size, hidden_size}, {hidden_size * batch_size, hidden_size, 1});
-	std::cout << "Types test passed\n";
-}
+
 
 void float_2_half_test(){
 	float h_f[1];
@@ -228,11 +241,7 @@ int main(int argc, char **argv) {
     //half_tensor_fill_test();
     half_tensor_zeros_test();
     half_tensor_rand_test();
-    //types_test();
-    half_multiply_test();
-    
-
-
+    //half_multiply_test();
     cudnnDestroy(cudnn_handle);
     curandDestroyGenerator(curand_gen);
     return 0;
